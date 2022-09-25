@@ -9,7 +9,7 @@ local config = {
   -- Configure AstroNvim updates
   updater = {
     remote = "origin", -- remote to use
-    channel = "nightly", -- "stable" or "nightly"
+    channel = "stable", -- "stable" or "nightly"
     version = "latest", -- "latest", tag name, or regex search like "v1.*" to only do updates before v2 (STABLE ONLY)
     branch = "main", -- branch name (NIGHTLY ONLY)
     commit = nil, -- commit hash (NIGHTLY ONLY)
@@ -26,7 +26,7 @@ local config = {
   },
 
   -- Set colorscheme to use
-  colorscheme = "default_theme",
+  colorscheme = "zephyr",
 
   -- Override highlight groups in any theme
   highlights = {
@@ -116,7 +116,8 @@ local config = {
   lsp = {
     -- enable servers that you already have installed without mason
     servers = {
-      -- "pyright"
+      "pyright",
+      "solargraph",
     },
     -- easily add or disable built in mappings added during LSP attaching
     mappings = {
@@ -125,13 +126,10 @@ local config = {
       },
     },
     -- add to the global LSP on_attach function
-    -- on_attach = function(client, bufnr)
-    -- end,
+    on_attach = function(client, bufnr) end,
 
     -- override the mason server-registration function
-    -- server_registration = function(server, opts)
-    --   require("lspconfig")[server].setup(opts)
-    -- end,
+    server_registration = function(server, opts) require("lspconfig")[server].setup(opts) end,
 
     -- Add overrides for LSP server settings, the keys are the name of the server
     ["server-settings"] = {
@@ -170,12 +168,40 @@ local config = {
       ["<leader>bc"] = { "<cmd>BufferLinePickClose<cr>", desc = "Pick to close" },
       ["<leader>bj"] = { "<cmd>BufferLinePick<cr>", desc = "Pick to jump" },
       ["<leader>bt"] = { "<cmd>BufferLineSortByTabs<cr>", desc = "Sort by tabs" },
+      ["Y"] = { "y$", desc = "Yank to the end of line" },
+      ["n"] = { "nzzzv", desc = "Centers cursor" },
+      ["N"] = { "Nzzzv", desc = "Centers cursor" },
+      ["J"] = { "mxJ'z", desc = "Centers cursor" },
+      ["<leader>j"] = { ":m . +1<CR>==", desc = "Moves text down" },
+      ["<leader>k"] = { ":m .-2<CR>==", desc = "Moves text up" },
+      ["x"] = { '"_x', desc = "Deletes character without yanking" },
+      ["<leader>d"] = { '"_d', desc = "Deletes without yanking" },
       -- quick save
       -- ["<C-s>"] = { ":w!<cr>", desc = "Save File" },  -- change description but the same command
     },
+    v = {
+      ["<leader>j"] = { ":m '>+1<CR>gv=gv", desc = "Moves text down" },
+      ["<leader>k"] = { ":m '<-2<CR>gv=gv", desc = "Moces text up" },
+      ["<leader>d"] = { '"_d', desc = "Deletes without yanking" },
+      ["<leader>y"] = { '"+y', desc = "Copy to clipboard" },
+    },
+    i = {
+      [","] = { ",<c-g>u" },
+      ["."] = { ".<c-g>u" },
+      ["!"] = { "!<c-g>u" },
+      ["?"] = { "?<c-g>u" },
+      ["/"] = { "/<c-g>u" },
+      ["\\"] = { "\\<c-g>u" },
+    },
     t = {
       -- setting a mapping to false will disable it
-      -- ["<esc>"] = false,
+      ["<esc>"] = false,
+      ["<c-q>"] = { "<c-\\><c-n>", desc = "Terminal normal mode" },
+      ["<esc><esc>"] = { "<c-\\><c-n>:q<cr>", desc = "Terminal quit" },
+    },
+    x = {
+      ["+"] = { "g<c-a>", desc = "Increment number" },
+      ["-"] = { "g<c-x>", desc = "Descrement number" },
     },
   },
 
@@ -183,18 +209,18 @@ local config = {
   plugins = {
     init = {
       -- You can disable default plugins as follows:
-      -- ["goolord/alpha-nvim"] = { disable = true },
+      ["goolord/alpha-nvim"] = { disable = true },
+      ["stevearcs/aerial.nvim"] = { disable = true },
+      { "glepnir/zephyr-nvim" },
 
       -- You can also add new plugins here as well:
       -- Add plugins, the packer syntax without the "use"
       -- { "andweeb/presence.nvim" },
-      -- {
-      --   "ray-x/lsp_signature.nvim",
-      --   event = "BufRead",
-      --   config = function()
-      --     require("lsp_signature").setup()
-      --   end,
-      -- },
+      {
+        "ray-x/lsp_signature.nvim",
+        event = "BufRead",
+        config = function() require("lsp_signature").setup() end,
+      },
 
       -- We also support a key value style plugin definition similar to NvChad:
       -- ["ray-x/lsp_signature.nvim"] = {
@@ -230,7 +256,18 @@ local config = {
       return config -- return final config table to use in require("null-ls").setup(config)
     end,
     treesitter = { -- overrides `require("treesitter").setup(...)`
-      ensure_installed = { "lua" },
+      ensure_installed = {
+        "lua",
+        "python",
+        "markdown",
+        "html",
+        "css",
+        "typescript",
+        "javascript",
+        "tsx",
+        "java",
+        "json",
+      },
     },
     -- use mason-lspconfig to configure LSP installations
     ["mason-lspconfig"] = { -- overrides `require("mason-lspconfig").setup(...)`
@@ -238,7 +275,7 @@ local config = {
     },
     -- use mason-tool-installer to configure DAP/Formatters/Linter installation
     ["mason-tool-installer"] = { -- overrides `require("mason-tool-installer").setup(...)`
-      ensure_installed = { "prettier", "stylua" },
+      ensure_installed = { "prettier", "stylua", "black" },
     },
     packer = { -- overrides `require("packer").setup(...)`
       compile_path = vim.fn.stdpath "data" .. "/packer_compiled.lua",
